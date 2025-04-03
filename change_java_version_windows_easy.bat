@@ -11,13 +11,16 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-:: Define Java versions and their paths
-set "java7=C:\Program Files\Java\jdk1.7.0_80"
-set "java8=C:\Program Files\Java\jdk1.8.0_401"
-set "java11=C:\Program Files\Java\jdk-11.0.20"
-set "java17=C:\Program Files\Java\jdk-17.0.10"
-set "java21=C:\Program Files\Java\jdk-21.0.1"
-set "java24=C:\Program Files\Java\jdk-24"
+:: Buscar versiones de Java instaladas
+set "java_dir=C:\Program Files\Java"
+set "count=0"
+
+:: Limpiar variables previas
+for /f "delims=" %%A in ('dir /b /ad "%java_dir%\jdk*" 2^>nul') do (
+    set /a count+=1
+    set "java_option_!count!=%%A"
+)
+
 
 :: Define Java download links (update these links if needed)
 set "java7_url=https://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-windows-x64.exe"
@@ -60,7 +63,10 @@ for /f "tokens=2,*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Se
 
 set "java_version=Unknown"
 for %%v in (7 8 11 17 21 24) do (
-    if "!JAVA_HOME_TMP!"=="!java%%v!" set "java_version=Java %%v"
+    if not "!JAVA_HOME_TMP!"=="" (
+        echo !JAVA_HOME_TMP! | findstr /i "1\.%%v\." >nul && set "java_version=Java %%v"
+        echo !JAVA_HOME_TMP! | findstr /i "%%v\." >nul && set "java_version=Java %%v"
+    )
 )
 
 echo ================================
@@ -73,26 +79,29 @@ echo.
 
 :: Display options
 echo Select an option:
-echo [1] Show current Java version
-echo [2] Use Java 7
-echo [3] Use Java 8
-echo [4] Use Java 11
-echo [5] Use Java 17
-echo [6] Use Java 21
-echo [7] Use Java 24
-echo [8] Exit
-echo [9] Download Java version
+echo  [0] Show current Java version
+
+:: Show installed Java versions
+for /L %%N in (1,1,%count%) do (
+    echo  [%%N] !java_option_%%N!
+)
+
+echo  [8] Exit
+echo  [9] Download Java version
 echo.
 set /p choice=Enter the number of the desired option: 
 echo.
 
 :: Handle selection
-if "%choice%"=="1" (
+if "%choice%"=="0" (
     for /f "tokens=2,*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v JAVA_HOME 2^>nul') do set "JAVA_HOME_TMP=%%b"
 
     set "java_version=Unknown"
     for %%v in (7 8 11 17 21 24) do (
-        if "!JAVA_HOME_TMP!"=="!java%%v!" set "java_version=Java %%v"
+        if not "!JAVA_HOME_TMP!"=="" (
+            echo !JAVA_HOME_TMP! | findstr /i "1\.%%v\." >nul && set "java_version=Java %%v"
+            echo !JAVA_HOME_TMP! | findstr /i "%%v\." >nul && set "java_version=Java %%v"
+        )
     )
 
     echo Current Java version: %java_version%
@@ -100,12 +109,10 @@ if "%choice%"=="1" (
     goto menu
 )
 
-if "%choice%"=="2" set "JAVA_HOME=!java7!"
-if "%choice%"=="3" set "JAVA_HOME=!java8!"
-if "%choice%"=="4" set "JAVA_HOME=!java11!"
-if "%choice%"=="5" set "JAVA_HOME=!java17!"
-if "%choice%"=="6" set "JAVA_HOME=!java21!"
-if "%choice%"=="7" set "JAVA_HOME=!java24!"
+for /L %%N in (1,1,%count%) do (
+    if "%choice%"=="%%N" set "selected_java=!java_option_%%N!"
+)
+
 if "%choice%"=="8" exit /b
 if "%choice%"=="9" goto download_java
 
@@ -117,10 +124,11 @@ if not defined JAVA_HOME (
 )
 
 :: Update environment variables
-setx JAVA_HOME "%JAVA_HOME%" /M
-setx PATH "%JAVA_HOME%\bin;%PATH%" /M
+setx JAVA_HOME "%java_dir%\%selected_java%" /M
+setx PATH "%java_dir%\%selected_java%\bin;%PATH%" /M
 
 :: Apply changes in the current session
+set "JAVA_HOME=%java_dir%\%selected_java%"
 set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 echo.
@@ -133,13 +141,13 @@ goto menu
 cls
 echo Select a Java version to download:
 echo.
-echo [1] Java 7
-echo [2] Java 8
-echo [3] Java 11
-echo [4] Java 17
-echo [5] Java 21
-echo [6] Java 24
-echo [7] Go back to the main menu
+echo  [1] Java 7
+echo  [2] Java 8
+echo  [3] Java 11
+echo  [4] Java 17
+echo  [5] Java 21
+echo  [6] Java 24
+echo  [7] Go back to the main menu
 echo.
 set /p download_choice=Enter the number of the desired version: 
 
