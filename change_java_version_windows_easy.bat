@@ -55,12 +55,20 @@ echo ###########CREDITS BY GITHUB.COM/MAXISANDOVAL37###########
 echo ##########################################################
 echo.
 
-echo ===============================
-echo       Java Version Selector    
-echo ===============================
+REM TODO evitar codigo repetido
+for /f "tokens=2,*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v JAVA_HOME 2^>nul') do set "JAVA_HOME_TMP=%%b"
+
+set "java_version=Unknown"
+for %%v in (7 8 11 17 21 24) do (
+    if "!JAVA_HOME_TMP!"=="!java%%v!" set "java_version=Java %%v"
+)
+
+echo ================================
+echo      Java Version Selector    
 echo.
-echo Current Java version:
-java -version
+echo   Current Java version: %java_version%
+echo ================================
+
 echo.
 
 :: Display options
@@ -80,11 +88,18 @@ echo.
 
 :: Handle selection
 if "%choice%"=="1" (
-    echo Current Java version:
-    java -version
+    for /f "tokens=2,*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v JAVA_HOME 2^>nul') do set "JAVA_HOME_TMP=%%b"
+
+    set "java_version=Unknown"
+    for %%v in (7 8 11 17 21 24) do (
+        if "!JAVA_HOME_TMP!"=="!java%%v!" set "java_version=Java %%v"
+    )
+
+    echo Current Java version: %java_version%
     pause
     goto menu
 )
+
 if "%choice%"=="2" set "JAVA_HOME=!java7!"
 if "%choice%"=="3" set "JAVA_HOME=!java8!"
 if "%choice%"=="4" set "JAVA_HOME=!java11!"
@@ -110,7 +125,7 @@ set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 echo.
 echo Java changed to: %JAVA_HOME%
-java -version
+echo.
 pause
 goto menu
 
