@@ -11,16 +11,35 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-:: Buscar versiones de Java instaladas
+:: Search for Java installations in the default directory
 set "java_dir=C:\Program Files\Java"
 set "count=0"
 
-:: Limpiar variables previas
+:: Clean
 for /f "delims=" %%A in ('dir /b /ad "%java_dir%\jdk*" 2^>nul') do (
     set /a count+=1
     set "java_option_!count!=%%A"
 )
 
+:: Check local variables
+REM Get the full path of this .bat file
+set "THISBAT=%~f0"
+set "BATDIR=%~dp0"
+
+REM Remove trailing backslash if it exists
+set "BATDIR=%BATDIR:~0,-1%"
+
+echo Setting environment variable sdkw to: %THISBAT%
+setx sdkw "%THISBAT%" /M
+
+REM Check if the directory is already in PATH
+echo %PATH% | find /i "%BATDIR%" >nul
+if errorlevel 1 (
+    echo Adding %BATDIR% to the system PATH...
+    setx PATH "%PATH%;%BATDIR%" /M
+) else (
+    echo The directory is already in the PATH.
+)
 
 :: Define Java download links (update these links if needed)
 set "java7_url=https://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-windows-x64.exe"
