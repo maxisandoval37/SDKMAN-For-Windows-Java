@@ -1,60 +1,45 @@
-# Java Version Selector
+# Java Version Selector for Windows
 
 ## Overview
-This batch script allows you to easily switch between different installed versions of Java on your Windows system. It updates the `JAVA_HOME` environment variable and modifies the system `PATH` accordingly.
+This script allows users to manage and switch between different Java versions installed on a Windows system. It also provides an option to download and install specific Java versions.
 
 ## Features
-- Display the current Java version
-- Select and switch between Java 7, Java 11, and Java 21
-- Persistent changes to `JAVA_HOME` and `PATH`
-- Option to exit the script cleanly
-- Automatic loop back to the menu for easy navigation
+- Lists installed Java versions.
+- Allows switching between different Java versions.
+- Displays the current Java version.
+- Downloads and installs selected Java versions.
+- Updates system environment variables for JAVA_HOME and PATH.
 
 ## Prerequisites
 - Windows operating system
-- Multiple versions of Java installed
-- Administrator privileges (required to modify environment variables permanently)
+- Administrator privileges (the script requests elevation if necessary)
 
-## Installation
-1. Copy the script into a `.bat` file, e.g., `java_selector.bat`.
-2. Edit the script to update the Java paths according to your installation locations.
-3. Run the script as Administrator for permanent environment variable updates.
+## How to Use
+1. **Run the script**: Execute the `.bat` file as an administrator.
+2. **Choose an option from the menu**:
+   - `[0]` Show the current Java version.
+   - `[1-N]` Select a Java version installed on your system.
+   - `[8]` Exit the script.
+   - `[9]` Download a Java version.
+3. **Downloading Java**: If you select option `[9]`, choose the Java version you wish to download and install.
+4. **Apply Changes**: Once a Java version is selected, the script updates `JAVA_HOME` and `PATH` accordingly.
 
-## Usage
-1. Double-click `java_selector.bat` to run the script.
-2. Select an option from the menu:
-   - `[1] Show current Java version`
-   - `[2] Use Java 7`
-   - `[3] Use Java 11`
-   - `[4] Use Java 21`
-   - `[5] Exit`
-3. If you select a Java version, the script updates `JAVA_HOME` and `PATH` and applies the changes immediately.
-4. The selected Java version will be used in the current session and future system-wide executions.
+## Java Versions Available for Download
+- Java 7
+- Java 8
+- Java 11
+- Java 17
+- Java 21
+- Java 24
 
 ## Notes
-- If you select option **1**, the script will display the current Java version and return to the menu.
-- If you select an invalid option, the script will prompt you to choose again.
-- Running the script without Administrator privileges may only apply changes for the current session.
+- The script modifies system environment variables using `setx`, which requires administrative rights.
+- If a Java version is downloaded, a system restart may be required for changes to take full effect.
+- The Java download URLs should be updated if necessary, as they may change over time.
 
 ## Example Output
-```
-===============================
-      Java Version Selector    
-===============================
-Current Java version:
-java version "17.0.3" 2022-04-19 LTS
+![image](https://github.com/user-attachments/assets/594356d3-a210-4225-82f7-364129b44de9)
 
-Select an option:
-[1] Show current Java version
-[2] Use Java 7
-[3] Use Java 11
-[4] Use Java 21
-[5] Exit
-Enter the number of the desired option: 3
-
-Java changed to: C:\Program Files\Java\jdk-11.0.20
-java version "11.0.20" 2023-07-18 LTS
-```
 
 ## License
 This script is free to use and modify.
