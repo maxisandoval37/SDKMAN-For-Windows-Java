@@ -15,24 +15,20 @@ if %errorlevel% neq 0 (
 set "java_dir=C:\Program Files\Java"
 set "count=0"
 
-:: Clean
 for /f "delims=" %%A in ('dir /b /ad "%java_dir%\jdk*" 2^>nul') do (
     set /a count+=1
     set "java_option_!count!=%%A"
 )
 
-:: Check local variables
-REM Get the full path of this .bat file
+:: Get the full path of this .bat file
 set "THISBAT=%~f0"
 set "BATDIR=%~dp0"
-
-REM Remove trailing backslash if it exists
 set "BATDIR=%BATDIR:~0,-1%"
 
 echo Setting environment variable sdkw to: %THISBAT%
 setx sdkw "%THISBAT%" /M
 
-REM Check if the directory is already in PATH
+:: Add current folder to PATH if not already included
 echo %PATH% | find /i "%BATDIR%" >nul
 if errorlevel 1 (
     echo Adding %BATDIR% to the system PATH...
@@ -41,7 +37,7 @@ if errorlevel 1 (
     echo The directory is already in the PATH.
 )
 
-:: Define Java download links (update these links if needed)
+:: Define Java download links
 set "java7_url=https://download.oracle.com/otn/java/jdk/7u80-b15/jdk-7u80-windows-x64.exe"
 set "java8_url=https://download.oracle.com/java/8/archive/jdk-8u401-windows-x64.exe"
 set "java11_url=https://download.oracle.com/java/11/archive/jdk-11.0.20_windows-x64_bin.exe"
@@ -52,55 +48,20 @@ set "java24_url=https://download.oracle.com/java/24/archive/jdk-24_windows-x64_b
 :menu
 cls
 
-echo.
-echo                  _________-----_____
-echo        ____------           __      ----_
-echo  ___----             ___------              \
-echo     ----________        ----                 \
-echo                -----__    ^|             _____)
-echo                     __-                /     \
-echo         _______-----    ___--          \    /)\
-echo   ------_______      ---____            \__/  /
-echo                -----__    \ --    _          /\
-echo                       --__--__     \_____/   \_/\
-echo                               ---^|   /          ^|
-echo                                  ^| ^|___________^|
-echo                                  ^| ^| ((_(_)^| )_)
-echo                                  ^|  \_((_(_)^|/(_)
-echo                                   \             (
-echo                                    \_____________)
-echo.
-echo.
-
-echo ##########################################################
-echo ###########CREDITS BY GITHUB.COM/MAXISANDOVAL37###########
-echo ##########################################################
-echo.
-
-REM TODO evitar codigo repetido
-for /f "tokens=2,*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v JAVA_HOME 2^>nul') do set "JAVA_HOME_TMP=%%b"
-
-set "java_version=Unknown"
-for %%v in (7 8 11 17 21 24) do (
-    if not "!JAVA_HOME_TMP!"=="" (
-        echo !JAVA_HOME_TMP! | findstr /i "1\.%%v\." >nul && set "java_version=Java %%v"
-        echo !JAVA_HOME_TMP! | findstr /i "%%v\." >nul && set "java_version=Java %%v"
-    )
-)
+call :print_ascii
 
 echo ================================
 echo      Java Version Selector    
 echo.
-echo   Current Java version: %java_version%
+
+call :get_current_java
+echo   Current Java version: !java_version!
 echo ================================
 
 echo.
-
-:: Display options
 echo Select an option:
 echo  [0] Show current Java version
 
-:: Show installed Java versions
 for /L %%N in (1,1,%count%) do (
     echo  [%%N] !java_option_%%N!
 )
@@ -113,41 +74,33 @@ echo.
 
 :: Handle selection
 if "%choice%"=="0" (
-    for /f "tokens=2,*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v JAVA_HOME 2^>nul') do set "JAVA_HOME_TMP=%%b"
-
-    set "java_version=Unknown"
-    for %%v in (7 8 11 17 21 24) do (
-        if not "!JAVA_HOME_TMP!"=="" (
-            echo !JAVA_HOME_TMP! | findstr /i "1\.%%v\." >nul && set "java_version=Java %%v"
-            echo !JAVA_HOME_TMP! | findstr /i "%%v\." >nul && set "java_version=Java %%v"
-        )
-    )
-
-    echo Current Java version: %java_version%
+    call :get_current_java
+    echo Current Java version: !java_version!
     pause
     goto menu
-)
-
-for /L %%N in (1,1,%count%) do (
-    if "%choice%"=="%%N" set "selected_java=!java_option_%%N!"
 )
 
 if "%choice%"=="8" exit /b
 if "%choice%"=="9" goto download_java
 
-:: Validate the selection
-if not defined JAVA_HOME (
-    echo Invalid option.
-    pause
-    goto menu
+:: Loop to check installed Java selection
+for /L %%N in (1,1,%count%) do (
+    if "%choice%"=="%%N" (
+        set "selected_java=!java_option_%%N!"
+        goto set_java
+    )
 )
 
-:: Update environment variables
-setx JAVA_HOME "%java_dir%\%selected_java%" /M
-setx PATH "%java_dir%\%selected_java%\bin;%PATH%" /M
+echo Invalid option.
+pause
+goto menu
 
-:: Apply changes in the current session
+:set_java
 set "JAVA_HOME=%java_dir%\%selected_java%"
+setx JAVA_HOME "%JAVA_HOME%" /M
+setx PATH "%JAVA_HOME%\bin;%PATH%" /M
+
+:: Update current session
 set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 echo.
@@ -191,7 +144,42 @@ echo Download complete! Starting installation...
 start /wait java_installer.exe /s
 
 echo Installation finished. You may need to restart your system.
-echo.
-
 pause
 goto menu
+
+:get_current_java
+for /f "tokens=2,*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v JAVA_HOME 2^>nul') do set "JAVA_HOME_TMP=%%b"
+
+set "java_version=Unknown"
+for %%v in (7 8 11 17 21 24) do (
+    if not "!JAVA_HOME_TMP!"=="" (
+        echo !JAVA_HOME_TMP! | findstr /i "1\.%%v\." >nul && set "java_version=Java %%v"
+        echo !JAVA_HOME_TMP! | findstr /i "%%v\." >nul && set "java_version=Java %%v"
+    )
+)
+exit /b
+
+:print_ascii
+echo.
+echo                  _________-----_____
+echo        ____------           __      ----_
+echo  ___----             ___------              \
+echo     ----________        ----                 \
+echo                -----__    ^|             _____)
+echo                     __-                /     \
+echo         _______-----    ___--          \    /)\
+echo   ------_______      ---____            \__/  /
+echo                -----__    \ --    _          /\
+echo                       --__--__     \_____/   \_/\
+echo                               ---^|   /          ^|
+echo                                  ^| ^|___________^|
+echo                                  ^| ^| ((_(_)^| )_)
+echo                                  ^|  \_((_(_)^|/(_)
+echo                                   \             (
+echo                                    \_____________)
+echo.
+echo ##########################################################
+echo ###########CREDITS BY GITHUB.COM/MAXISANDOVAL37###########
+echo ##########################################################
+echo.
+exit /b
