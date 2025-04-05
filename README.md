@@ -1,4 +1,7 @@
-# Java Version Selector for Windows
+# SDKMAN-For-Windows-Java
+## Java Version Selector for Windows
+
+![logo](https://github.com/user-attachments/assets/7757b2f6-49de-4534-908d-6c15132190c1)
 
 ## Overview
 This script allows users to manage and switch between different Java versions installed on a Windows system. It also provides an option to download and install specific Java versions.
